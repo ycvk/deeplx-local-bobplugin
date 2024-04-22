@@ -1,0 +1,18 @@
+{
+    "identifier": "ycvk.deeplx.local.translator",
+    "version": "0.0.1",
+    "category": "translate",
+    "name": "Local DeepLX Translator",
+    "summary": "",
+    "icon": "",
+    "author": "ycvk",
+    "homepage": "",
+    "appcast": "",
+    "minBobVersion": "0.5.0",
+    "options": [{
+        "identifier": "url",
+        "type": "text",
+        "title": "url",
+        "desc": "请求的deeplx地址"
+    }]
+}
