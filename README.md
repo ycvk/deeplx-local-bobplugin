@@ -1,3 +1,7 @@
+# 发现bob推荐里有更好的bob插件了👇，别用我这个临时搓的了
+https://github.com/missuo/bob-plugin-deeplx
+
+
 # deeplx-local-bobplugin
 用于自建deeplx服务的bob翻译插件
 
