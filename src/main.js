@@ -39,14 +39,25 @@ function supportLanguages() {
     return items.map(([standardLang, lang]) => standardLang);
 }
 
+function decodeHtmlEntities(text) {
+    const entities = {
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"',
+        '&#039;': "'"
+    };
+    return text.replace(/&amp;|&lt;|&gt;|&quot;|&#039;/g, match => entities[match]);
+}
+
 function translate(query, completion) {
+    const { text, detectFrom, detectTo } = query;
     const header = {
         "Content-Type": "application/json",
     };
     const deeplxUrl = $option.url;
-    const text = query.text;
-    const chunkSize = 2048; // 每个请求的最大长度
-    const chunkNum = Math.ceil(text.length / chunkSize); // 需要拆分的请求数
+    const chunkSize = 2048;
+    const chunkNum = Math.ceil(text.length / chunkSize);
 
     // 将长文本拆分成多个部分
     const textChunks = [];
@@ -69,8 +80,8 @@ function translate(query, completion) {
         const [startIndex, endIndex] = chunkIndexes[index];
         const body = {
             text: chunk,
-            source_lang: langMap.get(query.detectFrom),
-            target_lang: langMap.get(query.detectTo),
+            source_lang: langMap.get(detectFrom),
+            target_lang: langMap.get(detectTo),
         };
         return $http.request({
             method: "POST",
@@ -89,17 +100,19 @@ function translate(query, completion) {
         responses.sort((a, b) => a.startIndex - b.startIndex);
         let translatedText = "";
         let lastEndIndex = 0;
-        responses.forEach(resp => {
-            const { translatedText: chunkTranslatedText, startIndex, endIndex } = resp;
-            translatedText += text.slice(lastEndIndex, startIndex) + chunkTranslatedText;
+        for (const { translatedText: chunkTranslatedText, startIndex, endIndex } of responses) {
+            const previousText = text.slice(lastEndIndex, startIndex);
+            const newLines = previousText.match(/\n/g) || [];
+            translatedText += newLines.join("") + decodeHtmlEntities(chunkTranslatedText);
             lastEndIndex = endIndex;
-        });
-        translatedText += text.slice(lastEndIndex);
+        }
+        const remainingText = text.slice(lastEndIndex);
+        translatedText += remainingText.match(/\n/g)?.join("") || "";
 
         completion({
             result: {
-                from: query.detectFrom,
-                to: query.detectTo,
+                from: detectFrom,
+                to: detectTo,
                 toParagraphs: [translatedText],
             },
         });
